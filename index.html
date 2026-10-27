@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate-key="pageTitle">ZG Photo - محرر الصور الاحترافي</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for Theming */
+        :root {
+            --primary-color: #00AFFF;
+            --primary-hover: #008fcc;
+            --bg-gradient-start: #89f7fe;
+            --bg-gradient-end: #66a6ff;
+            --secondary-color: #6c757d;
+            --text-color: #1a1a1a;
+            --text-color-light: #f0f0f0;
+            --text-muted-color: #555;
+            --glass-bg: rgba(255, 255, 255, 0.18);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --glass-shadow: rgba(0, 0, 0, 0.12);
+            --body-bg: #fdfbfb;
+            --border-radius: 16px;
+            --transition-speed: 0.3s;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1e2022;
+            --bg-gradient-end: #393e46;
+            --text-color: #e0e0e0;
+            --text-color-light: #222;
+            --text-muted-color: #a0a0a0;
+            --glass-bg: rgba(20, 20, 25, 0.35);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: rgba(0, 0, 0, 0.45);
+            --body-bg: #121212;
+        }
+
+        /* Dynamic Animated Background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(-45deg, var(--bg-gradient-start), var(--bg-gradient-end), var(--primary-color));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            transition: background 0.5s;
+        }
+
+        body.animation-disabled .background-animation {
+            animation: none;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Cairo', 'Roboto', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-color);
+            transition: background-color 0.5s, color 0.5s;
+            line-height: 1.8;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        html[lang="zh"] body, html[lang="en"] body { font-family: 'Roboto', 'Cairo', sans-serif; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 20px; flex-grow: 1; width: 100%; }
+        
+        /* Glassmorphism Card Effect */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 var(--glass-shadow);
+            transition: background 0.5s, border 0.5s, transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transform: skewX(-25deg);
+            transition: left 0.8s;
+            pointer-events: none;
+        }
+        .glass-card:hover::before { left: 150%; }
+
+        /* Global Header Controls */
+        .header-controls {
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+        }
+        .logo-placeholder {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .logo-placeholder img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            object-fit: cover;
+        }
+        .controls-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .language-switcher { display: flex; background: rgba(0,0,0,0.12); border-radius: 25px; padding: 4px; }
+        .language-switcher button {
+            background: transparent; border: none; color: var(--text-color);
+            padding: 7px 14px; border-radius: 20px; cursor: pointer;
+            transition: all 0.3s ease; font-weight: bold; font-size: 0.9rem;
+        }
+        .language-switcher button.active {
+            background: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 175, 255, 0.5);
+        }
+        .control-btn {
+            background: rgba(0,0,0,0.06); border: 1px solid transparent; border-radius: 50%;
+            width: 42px; height: 42px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; color: var(--text-color);
+            transition: all var(--transition-speed) ease; font-size: 1.05rem;
+        }
+        .control-btn:hover { background-color: rgba(0,0,0,0.12); transform: rotate(15deg); }
+        .theme-toggle .fa-moon { display: none; }
+        .dark-mode .theme-toggle .fa-sun { display: none; }
+        .dark-mode .theme-toggle .fa-moon { display: inline-block; }
+
+        /* Main Hero App Card */
+        .app-card {
+            padding: 35px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 35px;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+        .app-logo {
+            flex-shrink: 0;
+        }
+        .app-logo img {
+            width: 140px;
+            height: 140px;
+            border-radius: 28px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            object-fit: cover;
+            border: 2px solid var(--glass-border);
+        }
+        .app-details { flex: 1; min-width: 280px; }
+        .app-title-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--text-color);
+            letter-spacing: -0.5px;
+        }
+        .app-badge {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(0, 175, 255, 0.3);
+        }
+        .app-short-desc {
+            font-size: 1.12rem;
+            margin-bottom: 25px;
+            opacity: 0.92;
+            line-height: 1.7;
+        }
+        
+        /* Multi-Platform Download Buttons & Ad Button */
+        .download-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .download-btn {
+            position: relative;
+            color: #fff;
+            padding: 13px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 0.98rem;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .download-btn:hover {
+            transform: translateY(-3px);
+        }
+        .download-progress {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0;
+            background-color: rgba(255, 255, 255, 0.3); border-radius: 50px;
+            transition: width 2s ease-out;
+        }
+        .download-btn.downloading .download-progress { width: 100%; }
+        
+        /* Distinct Platform Colors */
+        .btn-windows {
+            background-image: linear-gradient(45deg, #0078d4, #005a9e);
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.4);
+        }
+        .btn-windows:hover { box-shadow: 0 7px 20px rgba(0, 120, 212, 0.6); }
+
+        .btn-linux {
+            background-image: linear-gradient(45deg, #d35400, #e67e22);
+            box-shadow: 0 4px 15px rgba(211, 84, 0, 0.4);
+        }
+        .btn-linux:hover { box-shadow: 0 7px 20px rgba(211, 84, 0, 0.6); }
+
+        .btn-ad {
+            background-image: linear-gradient(45deg, #e50914, #ff3d00);
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+        }
+        .btn-ad:hover {
+            box-shadow: 0 7px 22px rgba(229, 9, 20, 0.7);
+        }
+
+        /* Ad Banner Section (Without Video) */
+        .ad-banner-card {
+            padding: 26px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.12), rgba(0, 175, 255, 0.12));
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 30px var(--glass-shadow);
+        }
+        .ad-banner-info {
+            flex: 1;
+            min-width: 260px;
+        }
+        .ad-banner-info h2 {
+            margin: 0 0 8px 0;
+            font-size: 1.6rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ad-banner-info h2 i {
+            color: #e50914;
+        }
+        .ad-banner-info p {
+            margin: 0;
+            color: var(--text-muted-color);
+            font-size: 1.02rem;
+            line-height: 1.6;
+        }
+
+        /* Gallery & Posters Sections */
+        .section { margin-bottom: 35px; }
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 22px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+            font-weight: 800;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .gallery-item {
+            position: relative;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--glass-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px var(--glass-shadow);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 190px;
+            object-fit: cover;
+            display: block;
+        }
+        .gallery-caption {
+            padding: 10px 14px;
+            background: var(--glass-bg);
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-color);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Posters Grid */
+        .posters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 18px;
+        }
+        .poster-item {
+            position: relative;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--glass-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .poster-item:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 12px 30px var(--glass-shadow);
+        }
+        .poster-item img {
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            object-fit: cover;
+            display: block;
+        }
+        .poster-caption {
+            padding: 10px 12px;
+            background: var(--glass-bg);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-color);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Description Card */
+        .description-card { padding: 35px; }
+        .app-long-desc p { margin-bottom: 16px; font-size: 1.05rem; }
+        .app-long-desc h3 {
+            font-size: 1.45rem;
+            color: var(--primary-color);
+            margin-top: 30px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+        .app-long-desc ul {
+            list-style-position: inside;
+            padding-right: 20px;
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+        html[dir="ltr"] .app-long-desc ul { padding-left: 20px; padding-right: 0; }
+        .app-long-desc li { margin-bottom: 10px; font-size: 1rem; }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .feature-box {
+            padding: 16px;
+            background: rgba(0,0,0,0.04);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+        }
+        .feature-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 6px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); padding: 25px;
+            border-radius: 20px; box-shadow: 0 10px 40px var(--glass-shadow);
+            width: 90%; max-width: 800px; max-height: 85vh;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 15px;
+        }
+        .modal-header h2 { margin: 0; color: var(--primary-color); font-size: 1.5rem; }
+        .modal-close-btn {
+            background: none; border: none; font-size: 1.8rem;
+            cursor: pointer; color: var(--text-muted-color); transition: transform 0.2s;
+        }
+        .modal-close-btn:hover { transform: scale(1.2); color: var(--text-color); }
+        .modal-body {
+            overflow-y: auto; overflow-x: hidden; padding-right: 12px; padding-left: 5px;
+        }
+        html[dir="rtl"] .modal-body { padding-left: 12px; padding-right: 5px; }
+        
+        .modal-body::-webkit-scrollbar { width: 7px; }
+        .modal-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.06); border-radius: 8px; }
+        .modal-body::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color); border-radius: 8px;
+        }
+
+        .modal-footer {
+            margin-top: 20px; padding-top: 12px;
+            border-top: 1px solid var(--glass-border); text-align: right;
+        }
+        html[dir="rtl"] .modal-footer { text-align: left; }
+        
+        /* Services Modal List */
+        .services-list { display: flex; flex-direction: column; gap: 12px; }
+        .service-link {
+            display: flex; align-items: center; gap: 15px; padding: 14px 18px;
+            background: rgba(0,0,0,0.08); border-radius: var(--border-radius);
+            text-decoration: none; color: var(--text-color);
+            transition: all var(--transition-speed); font-size: 1.05rem; font-weight: 700;
+        }
+        .service-link:hover {
+            background-color: rgba(0,0,0,0.15); transform: translateX(-6px);
+            color: var(--primary-color);
+        }
+        html[dir="ltr"] .service-link:hover { transform: translateX(6px); }
+        .service-link i { font-size: 1.3rem; width: 30px; text-align: center; color: var(--primary-color); }
+
+        /* About Modal Content */
+        #about-modal-body { text-align: center; }
+        #about-modal-body .profile-pic {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 3px solid var(--primary-color); margin-bottom: 12px; object-fit: cover;
+        }
+        #about-modal-body h3 { color: var(--primary-color); margin-bottom: 4px; font-size: 1.5rem; }
+        #about-modal-body h4 { font-size: 1.1rem; color: var(--text-muted-color); margin-bottom: 18px; }
+        .info-section {
+            margin: 20px 0; background: var(--glass-bg); padding: 18px;
+            border-radius: var(--border-radius); border: 1px solid var(--glass-border); text-align: initial;
+        }
+        .info-section h5 {
+            font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-muted-color); border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 5px; margin-bottom: 10px;
+        }
+        .projects-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px; margin-top: 12px;
+        }
+        .project-card { background: rgba(0,0,0,0.08); padding: 10px; border-radius: var(--border-radius); }
+        .project-card img { max-width: 100%; height: auto; border-radius: 6px; }
+        .certs-grid {
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+            gap: 15px; margin-top: 12px;
+        }
+        .certs-grid img {
+            max-height: 50px; width: auto; filter: grayscale(50%);
+            opacity: 0.85; transition: all 0.3s;
+        }
+        .certs-grid img:hover { filter: none; opacity: 1; transform: scale(1.1); }
+        
+        .social-card { max-width: 260px; margin: 15px auto 0; text-align: center; }
+        .social-card .profileimage img { border-radius: 50%; width: 90px; height: 90px; object-fit: cover; }
+        .social-card .Name { color: var(--text-color); font-size: 1.15rem; margin-top: 8px; font-weight: bold; }
+        .social-card .socialbar {
+            background-color: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 3em; width: 100%; padding: 10px; margin-top: 12px;
+            display: flex; justify-content: space-around; align-items: center;
+        }
+        .social-card .socialbar a { color: var(--text-muted-color); transition: 0.3s; }
+        .social-card .socialbar a:hover { transform: scale(1.15); }
+        #facebook:hover { color: #1877f2; }
+        #instagram:hover { color: #e4405f; }
+        #whatsapp:hover { color: #25d366; }
+        #telegram:hover { color: #0088cc; }
+        #youtube:hover { color: #ff0000; }
+
+        /* Settings Modal */
+        .settings-section { margin-bottom: 20px; padding: 18px; background: var(--glass-bg); border-radius: var(--border-radius); }
+        .settings-section h4 { margin-bottom: 12px; color: var(--primary-color); border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .setting-item input[type="color"] { border: none; background: transparent; width: 38px; height: 38px; cursor: pointer; border-radius: 50%; }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Image Lightbox Modal */
+        #image-modal-overlay { padding: 10px; }
+        .image-modal-content {
+            padding: 10px; background: var(--glass-bg); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border);
+            border-radius: 16px; box-shadow: 0 8px 32px 0 var(--glass-shadow);
+            max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; position: relative;
+        }
+        #image-modal-close-btn { position: absolute; top: 15px; right: 15px; z-index: 2010; color: #fff; text-shadow: 0 0 8px rgba(0,0,0,0.8); }
+        #modal-image { width: 100%; height: 100%; max-height: 82vh; object-fit: contain; border-radius: 10px; }
+
+        .btn {
+            padding: 9px 20px; font-weight: bold; color: #fff;
+            background-color: var(--primary-color); border: 1px solid transparent;
+            border-radius: var(--border-radius); cursor: pointer; transition: all var(--transition-speed);
+        }
+        .btn.btn-secondary { background-color: var(--secondary-color); }
+        .btn.btn-danger { background-color: #dc3545; }
+        .btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-2px); }
+
+        /* Global Footer */
+        .app-footer {
+            padding: 22px; text-align: center; font-size: 0.92rem;
+            color: var(--text-muted-color); background-color: var(--glass-bg);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-top: 1px solid var(--glass-border); margin-top: 40px;
+        }
+        .app-footer a { color: var(--text-muted-color); text-decoration: none; transition: color var(--transition-speed); }
+        .app-footer a:hover { color: var(--primary-color); }
+        .app-footer p { margin-top: 6px; opacity: 0.85; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div class="background-animation"></div>
+
+    <div class="container">
+        <!-- ==== GLOBAL HEADER CONTROLS ==== -->
+        <header class="header-controls glass-card">
+            <div class="logo-placeholder" title="ZG Photo">
+                 <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRj_EIn1uavTc8Ct5wnfzhbGHlpTwENDuYJAn8pvUT-DomgNOIBzVB1w8EkDHl4haOdB2sBhvRrMgfYkie9JZNlHGDoChJaDP_-7oOQs4164JU98_wMYwIRb8zKaUPqj9qLfeB9DJTZmS3l5FAhdx-Hy3Qri-uZNTpDmFebvoKySBwrS9uD-0hfhvQwsM/s1024/download.png" alt="ZG Photo Icon">
+                 <span>ZG Photo</span>
+            </div>
+            <div class="controls-container">
+                <div class="language-switcher">
+                    <button id="lang-ar" class="active">AR</button>
+                    <button id="lang-en">EN</button>
+                    <button id="lang-zh">ZH</button>
+                </div>
+                <button id="services-toggle-btn" class="control-btn" title="ZG Services">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+                <button id="about-toggle-btn" class="control-btn" title="About Developer">
+                    <i class="fas fa-user-tie"></i>
+                </button>
+                <button id="privacy-toggle-btn" class="control-btn" title="Privacy Policy">
+                    <i class="fas fa-shield-halved"></i>
+                </button>
+                <button id="settings-toggle-btn" class="control-btn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="control-btn theme-toggle" id="theme-toggle-btn" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- ==== MAIN APP HERO CARD ==== -->
+            <section class="app-card glass-card">
+                <div class="app-logo">
+                    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhtRj_EIn1uavTc8Ct5wnfzhbGHlpTwENDuYJAn8pvUT-DomgNOIBzVB1w8EkDHl4haOdB2sBhvRrMgfYkie9JZNlHGDoChJaDP_-7oOQs4164JU98_wMYwIRb8zKaUPqj9qLfeB9DJTZmS3l5FAhdx-Hy3Qri-uZNTpDmFebvoKySBwrS9uD-0hfhvQwsM/s1024/download.png" alt="ZG Photo Official Logo">
+                </div>
+                <div class="app-details">
+                    <div class="app-title-container">
+                        <h1 class="app-title">ZG Photo</h1>
+                        <span class="app-badge" data-translate-key="appBadge">PRO STUDIO</span>
+                    </div>
+                    <p class="app-short-desc" data-translate-key="shortDescription">
+                        برنامج متكامل وفائق السرعة لتحرير الصور والتصميم الرقمي الاحترافي. مبني من الصفر بمحرك رسومي مباشر يدعم الطبقات، الأقنعة، أنماط الطبقات، وتوافقاً تاماً مع ملفات PSD و PSB بدون اشتراكات أو قيود سحابية.
+                    </p>
+                    
+                    <!-- Direct Downloads & Watch Ad Buttons -->
+                    <div class="download-area">
+                        <!-- Windows Direct MSI Download -->
+                        <a href="https://drive.google.com/file/d/1_-m1KhDWiwSMrBHDXBigwdRnzbBPuNTb/view?usp=sharing" class="download-btn btn-windows" id="download-win" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-windows"></i>
+                            <span class="download-text" data-translate-key="downloadWindows">تحميل للويندوز (MSI x64)</span>
+                            <div class="download-progress"></div>
+                        </a>
+
+                        <!-- Linux AppImage Download -->
+                        <a href="https://drive.google.com/file/d/1NvXbNRQXrqASOhTSXTxV2gmGsyfInw6m/view?usp=sharing" class="download-btn btn-linux" id="download-linux" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-linux"></i>
+                            <span class="download-text" data-translate-key="downloadLinux">تحميل للينكس (AppImage)</span>
+                            <div class="download-progress"></div>
+                        </a>
+
+                        <!-- Watch Ad Button -->
+                        <a href="https://www.zg-ziad-gamal.com/p/zg-photo.html" class="download-btn btn-ad" target="_blank" rel="noopener noreferrer" title="مشاهدة الإعلان">
+                            <i class="fas fa-play-circle"></i>
+                            <span class="download-text" data-translate-key="watchAd">مشاهدة الإعلان</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==== OFFICIAL AD CALLOUT SECTION (تم حذف الفيديو والإبقاء على الزر فقط) ==== -->
+            <section class="section">
+                <div class="ad-banner-card glass-card">
+                    <div class="ad-banner-info">
+                        <h2>
+                            <i class="fas fa-bullhorn"></i>
+                            <span data-translate-key="adTitle">الإعلان الرسمي والعرض الترويجي لـ ZG Photo</span>
+                        </h2>
+                        <p data-translate-key="adBannerDesc">
+                            اضغط على زر مشاهدة الإعلان أدناه لاستعراض الصفحة الترويجية الرسمية الشاملة لبرنامج ZG Photo وكافة تفاصيل ومميزات الإصدار.
+                        </p>
+                    </div>
+                    <div>
+                        <a href="https://www.zg-ziad-gamal.com/p/zg-photo.html" class="download-btn btn-ad" target="_blank" rel="noopener noreferrer" style="font-size: 1.05rem; padding: 14px 30px;">
+                            <i class="fas fa-play-circle"></i>
+                            <span data-translate-key="watchAd">مشاهدة الإعلان</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==== SCREENSHOTS GALLERY ==== -->
+            <section class="section">
+                <h2 class="section-title" data-translate-key="screenshotsTitle">لقطات الشاشة الفعلية للمشروع</h2>
+                <div class="gallery">
+                    <div class="gallery-item lightbox-trigger">
+                        <img src="https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-demo.jpg" alt="ZG Photo Workspace & Curves">
+                        <div class="gallery-caption">
+                            <span data-translate-key="cap1">واجهة العمل الكاملة مع طبقات المنحنيات والكتابة</span>
+                            <i class="fas fa-expand"></i>
+                        </div>
+                    </div>
+                    <div class="gallery-item lightbox-trigger">
+                        <img src="https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-adjustments.jpg" alt="Levels and Live Histogram">
+                        <div class="gallery-caption">
+                            <span data-translate-key="cap2">مستويات الألوان ومخطط الهستوجرام الحي</span>
+                            <i class="fas fa-expand"></i>
+                        </div>
+                    </div>
+                    <div class="gallery-item lightbox-trigger">
+                        <img src="https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-layer-styles.jpg" alt="Layer Styles Dialog">
+                        <div class="gallery-caption">
+                            <span data-translate-key="cap3">أنماط الطبقات، الظلال، والتوهج الخارجي</span>
+                            <i class="fas fa-expand"></i>
+                        </div>
+                    </div>
+                    <div class="gallery-item lightbox-trigger">
+                        <img src="https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-masks.jpg" alt="Selections and Masked Adjustments">
+                        <div class="gallery-caption">
+                            <span data-translate-key="cap4">التحديدات الدقيقة وأقنعة الطبقات غير المدمرة</span>
+                            <i class="fas fa-expand"></i>
+                        </div>
+                    </div>
+                    <div class="gallery-item lightbox-trigger">
+                        <img src="https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-vector.jpg" alt="Vector Paths and Shapes">
+                        <div class="gallery-caption">
+                            <span data-translate-key="cap5">أدوات الأشكال المتجهة والمسارات الاحترافية</span>
+                            <i class="fas fa-expand"></i>
+                        </div>
+                    </div>
+                    <div class="gallery-item lightbox-trigger">
+                        <img src="https://raw.githubusercontent.com/storytold/photocraft/main/docs/images/photocraft-transform.jpg" alt="Free Transform and Framing">
+                        <div class="gallery-caption">
+                            <span data-translate-key="cap6">التحويل الحر والتحكم الكامل في الأبعاد</span>
+                            <i class="fas fa-expand"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==== OFFICIAL POSTERS AND SHOWCASES ==== -->
+            <section class="section">
+                <h2 class="section-title" data-translate-key="postersTitle">الملصقات والعروض الترويجية الرسمية</h2>
+                <div class="posters-grid">
+                    <div class="poster-item lightbox-trigger">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhs7M28uh5VSN7iVlY6wQlE9IE6e_HVmzWXC8OjBFBY7vWwk7RpDEUFgM9yylXvoAhNx3QEW90rKHfhqHw3t7xspVgQJUvAY9-pCeMB2pAL8oHUwbqmYiO1RP1y3u6rFpvM9FEPVb6rwlSuI-vRu5cpksd-WAsdoXQY7KubogVMfRH0HmfrCAV18Xl07PWa/s2700/ZG-Photo-Ad-01.png" alt="ZG Photo Ad 01">
+                        <div class="poster-caption">
+                            <span data-translate-key="ad1">ملصق رقم 01</span>
+                            <i class="fas fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                    <div class="poster-item lightbox-trigger">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhPq4kFsiSlFhUNIxFfqMKOMZszNqO3ke-MQeCh-cYw0uGUTztX_tapLgZuD76t31G2I8LalcPUZvUiHiDNO-Wd0FFP27TNj1c49lcgZqLJEahJiPceZIe6TB9KGm8cmAHk2fDeez0-PaIEvJmrF3XPnkbV3ceGF4kfICr0jJf6b95yn8EaBf2souOV7gJG/s2700/ZG-Photo-Ad-02.png" alt="ZG Photo Ad 02">
+                        <div class="poster-caption">
+                            <span data-translate-key="ad2">ملصق رقم 02</span>
+                            <i class="fas fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                    <div class="poster-item lightbox-trigger">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjrKVifaa16b8nY8dALTLAaaWpElz_3750KYzqXjFjt0kX3_OeRyXIt4QrA1pc333eunuEmD0UZGW4UWH5UMsGNvifwPKse1AfXjS4vCHBscuceXd_yEKD9CyJv6AwXeIiBEpvH_fVqNYa1GolNAbaIbbq7OhEXgtsnK-33h79fG_4X6jBqEoWbgSKxo8fi/s2700/ZG-Photo-Ad-03.png" alt="ZG Photo Ad 03">
+                        <div class="poster-caption">
+                            <span data-translate-key="ad3">ملصق رقم 03</span>
+                            <i class="fas fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                    <div class="poster-item lightbox-trigger">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhRNVffuEe7g_We5iKyzYoSys2PM0dATOZdce9yzHaqIwFhXgh9SZuxnDqy1JFMbGj6tlxWL1MWO4yL5i8pgxCWH4L-XImxZ3GjVYK-7mZXv7_55b0_USAdBdsLbrvj_uADex8651t0igpLCGQukYAilFCbeeoVZdBiA0fS53MK5BDesfRVdfL_etkwugU6/s2700/ZG-Photo-Ad-04.png" alt="ZG Photo Ad 04">
+                        <div class="poster-caption">
+                            <span data-translate-key="ad4">ملصق رقم 04</span>
+                            <i class="fas fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                    <div class="poster-item lightbox-trigger">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgj4LFz9mJQlLujsKHBwGA9SlmlYbKjaosNBVANjfIMsOFAzAZlH3thtNoX0OUCWoIoz-Z4xnIrZtZxvhUpjn5n9FThrGsrje0aK9cA8Fqu3K9c7M9TkqGvHj1kNYwLnP2U3bv1ix4S5kldZZ7vsCbhPGJjXKsQVMCljzlJus_FTMd4kmS21yCXEDd_Zbca/s2700/ZG-Photo-Ad-05.png" alt="ZG Photo Ad 05">
+                        <div class="poster-caption">
+                            <span data-translate-key="ad5">ملصق رقم 05</span>
+                            <i class="fas fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==== DETAILED SPECIFICATIONS AND DESCRIPTION ==== -->
+            <section class="section">
+                <div class="description-card glass-card">
+                    <h2 class="section-title" data-translate-key="descriptionTitle">تفاصيل ومميزات ZG Photo</h2>
+                    <div class="app-long-desc" data-translate-key="longDescription">
+                        <p><strong>ZG Photo</strong> هو محطة عمل فائقة التطور لتحرير الصور والتصميم الجرافيكي المتقدم، صُممت خصيصاً للمحترفين والمصممين الذين يبحثون عن أقصى درجات السرعة والحرية دون الحاجة إلى اشتراكات شهرية أو اتصال إلزامي بالإنترنت.</p>
+                        
+                        <div class="feature-grid">
+                            <div class="feature-box">
+                                <h4><i class="fas fa-bolt"></i> محرك GPU أصيل</h4>
+                                <p>يعمل بتسريع عتادي مباشر عبر كرت الشاشة (Metal، Vulkan، DirectX 12) دون أطر إلكترون أو واجهات ويب بطيئة.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-layer-group"></i> توافق تام مع PSD</h4>
+                                <p>فتح وحفظ وتعديل مستندات الفوتوشوب متعددة الطبقات مع الحفاظ الكامل على الأقنعة وخصائص الطبقة وتنسيقات النص.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-sliders-h"></i> طبقات ضبط غير مدمرة</h4>
+                                <p>تحكم حي عبر المنحنيات Curves، المستويات Levels، درجات التشبع Vibrance والسطوع بدون الإضرار بالصورة الأصلية.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-robot"></i> جاهزية أتمتة الذكاء الاصطناعي</h4>
+                                <p>كل عملية في البرنامج مدعومة بنظام أوامر مهيكل يمكن التحكم به عبر السطر البرمجي CLI أو خوادم وكلاء الذكاء الاصطناعي MCP.</p>
+                            </div>
+                        </div>
+
+                        <h3>🔹 بيئة مألوفة واحترافية:</h3>
+                        <ul>
+                            <li><strong>واجهة أدوات بديهية:</strong> القوائم، اللوحات، أدوات التحديد، والاختصارات تقع في نفس الأماكن التي اعتادت عليها أصابعك.</li>
+                            <li><strong>27 نمط دمج (Blending Modes):</strong> محسوبة بدقة رياضية متناهية تدعم عمق ألوان 8-bit و 16-bit و 32-bit floating point.</li>
+                            <li><strong>أنماط الطبقات (Layer Styles):</strong> تطبيق الظلال الساقطة Drop Shadow، التوهج الداخلي والخارجي Glow، الحدود Stroke، والتدرجات الحية.</li>
+                            <li><strong>نظام الفرش المتقدم:</strong> دعم كامل لضغط القلم، والميل، والتشتت، مع فرش خلط الألوان الحية.</li>
+                        </ul>
+
+                        <h3>🔹 دعم صيغ التصدير الشاملة:</h3>
+                        <p>تصدير واستيراد متكامل لصيغ: PSD، PSB، PNG، JPEG، TIFF، WebP، GIF، BMP، TGA، ICO، OpenEXR، Radiance HDR و AVIF مع الحفاظ على قنوات الشفافية والعمق اللوني الكامل.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ==== GLOBAL FOOTER ==== -->
+    <footer class="app-footer">
+        <a href="https://www.zg-ziad-gamal.com/" target="_blank" rel="noopener noreferrer">
+            All Right Reserved Copyright © ZG ZIAD GAMAL
+        </a>
+        <p data-translate-key="poweredBy">يعمل بواسطة ZG SERVER</p>
+    </footer>
+
+    <!-- ==== GLOBAL MODALS ==== -->
+    <!-- About Developer Modal -->
+    <div id="about-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-translate-key="about_modal_title">حول المطور</h2>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div id="about-modal-body" class="modal-body">
+                <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiY8msPmxWaVYd-R35MDAS-7GnZhFFVjdU9SGXu2Ip53tU_LW7FYAvbaN7wQLj3tgTUuPIpxrXTfj1xkhe0rMk8EKzd5lqD419nvrj7R3TGlu0gTngDS3YUzHWDR3WB_djZkj1X635zwlkTw51ygun3-7h9UeMHiuvk1-GQ0djow_ViDR11lqn2x3K33xK8/s320/502463702_2856417251209619_8434838307459497445_n.jpg" alt="Ziad Gamal" class="profile-pic">
+                <h3 data-translate-key="about_name">زياد جمال شوقي محمد محمد يوسف</h3>
+                <h4 data-translate-key="about_dob">تاريخ الميلاد: 23/1/2003</h4>
+                <div class="info-section">
+                    <h5 data-translate-key="about_skills_title">القدرات</h5>
+                    <p data-translate-key="about_skill_1">إنشاء وتطوير مواقع الويب وتطبيقات الأنظمة المتكاملة.</p>
+                    <p data-translate-key="about_skill_2">إنتاج فيديوهات موشن جرافيك مع تعليق صوتي احترافي بلهجات متعددة.</p>
+                    <p data-translate-key="about_skill_3">تصميم وتطوير برمجيات الأندرويد والكمبيوتر وأنظمة الذكاء الاصطناعي.</p>
+                </div>
+                <div class="info-section">
+                    <h5 data-translate-key="about_experience_title">أبرز الأعمال والخبرات</h5>
+                    <p data-translate-key="about_exp_1">العمل مع شركة الدار العربي السعودية (19/5/2019).</p>
+                    <p data-translate-key="about_exp_2">المشاركة في مشروع القرآن العظيم وتطوير برامج للأندرويد والآيفون.</p>
+                    <p data-translate-key="about_exp_3">تصميم هويات بصرية وصور لـ GAMES 2EGYPT.</p>
+                    <p data-translate-key="about_exp_5">المشاركة في مشاريع وتطبيقات شركة Huawei.</p>
+                </div>
+                <div class="info-section">
+                    <h5 data-translate-key="about_projects_title">مشاريعي</h5>
+                    <div class="projects-grid">
+                        <div class="project-card"><a href="https://www.zg-ziad-gamal.com/2022/09/2312023-coming-soon-on-01232023-2023-1.html" target="_blank" rel="noopener noreferrer"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiru3mgkldKe9Vuwg3DrzDvya06O_lh0TJprBCtf_AkhFUzOudLf_JCksoK-jLoneCr8eIBi6apuGHXYqaCTB4FpHnP7nBYncouwr-KbBFiFPcRLacy8IC0-hVIRRI-iA7vLVKAZYFYlQua/w265-h149/Screenshot+2022-04-20+230228.png" alt="ZG ZEZO APPS"></a></div>
+                        <div class="project-card"><a href="https://www.zg-ziad-gamal.com/p/zg-academy.html" target="_blank" rel="noopener noreferrer"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjdgPBuecwmCGT3iLzFRbDS7IZiz0kPvgy2puQfo7atyw0UFVhCNxIORaDX0uR1ZpM2UMc9KAswbUEQECJMMbYdzQKU4U2b77TOYs3gDH0wpMoA7FNnERjMlsWGdot26V-2VE7MnSt-7tD6cbEpgp-rhHh8ER61Q0nCKv0IWt-eUDypPuPJdh1XNvtXJf4/s320/1693185773962.png" alt="ZG ACADEMY"></a></div>
+                        <div class="project-card"><a href="https://www.zg-ziad-gamal.com/" target="_blank" rel="noopener noreferrer"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjI4-ZVHI7a3W47rg5IssbHBYFa0ISdZHDXi607t139mmGqFAWiFCzm_VtIIr9sjUoki72WF9FCz6uIDx49Mu_e82-3MXI7zUyyGhnZjZ9VSbnjT2mdLHYx9TYU2P1_yVnbC27bUEX3Qs9B63lsjhi84ir2T41lTyfR3OHDZnEuHbjwNN86__0KB2lDjJsg/s320/WhatsApp%20Image%202025-05-30%20at%201.46.14%20PM.png" alt="ZG WEB"></a></div>
+                    </div>
+                </div>
+                <div class="info-section">
+                    <h5 data-translate-key="about_certs_title">الشهادات المعتمدة</h5>
+                    <div class="certs-grid">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjgh5WE5xJh7aRQHuoowFnN9XRDm0JTX2OE0qmB27B4DsScJAAw4HNFJWKfF-FLFcoFaNBX9BP6K8OdGv25ADXYTVzI5Z1W5NwXOItflBeIxHYZJ9otUJDGgzxEl8DoNhyK5-VGqgNyN4oVg4tg3oe0Fd7xQau67us8Rg9E8wreaN7csWJHMmXLJWdZJ3sx/w252-h252/university-of-oxford-badge-logo.png" alt="Oxford">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg5FwgLgDDYFHCjP9gYUlrQOSGgS8I2EoYwOdFREipA_rPuMp-GxsdumuF74QleqcIP2adDlnKmSa03CXPKbhGTbaqb2jchO0kuyTDg8L3gQ2OjDqy0cHV3w-9Gu_-jX9nXj4CVejhs8hyphenhyphenzJgUQWLWW0AOwIoi7l9THGbuyQ5yhNwOoi7MPLzSb0CAh6is/s320/673468.png" alt="Cert 1">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH8CaE20YHoSwd2tDRb2uh3QT9_fhxdGv0pfvRh4qoXw_wr_B6fMJLHF6OSszTD5y2BUSfTkwQx5lw7UMFUiEIsqUqU7i4z203NKC9wcTAYhRf5r4BD1xiMucTqG5vrjYQ25Ap4ITQU57zpqPBYHO2L30VNG7Hq-rdcE65G_bT1iq197_M4EO3kxogf0Q/w168-h168/882726.png" alt="Cert 2">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEioC4aVpzDV0C9WMQk7yiqT75FsA61aj-OiGFrPOgNlEwlNBQl9o5pwLTpuP1MkAPDKxPMphhlXB2g46Ddw3z0IjwBxBsAHlvwCWJkl1wUIzSz9pqjmJ_xrjJEIfnR0yhtlvF7a2Ya7Yx-s_p-d9VDpwxtcy2fxE7p3FNq7eCejabIDEFKv5enHhCMkvQg/w179-h179/amazon-1331550885972433276.png" alt="Amazon">
+                        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj3ekp13xqwuXwELEvGxtaFbxdX_E6CNmG2zdElPyqTxtn3HaG-bBNVH8vfvr9Me9AMp1G3OOgfu8iFPws3_qG0j2Zo_SJYpSalIflVaL_cXF3XnVgIXpbSfMrqlvpKtgBDacAJD_5Ng8jg7k9JtogS3BkcirIgBZO0TdvzLWvL7f41zqNXoBKrIdIgX7o/s1600/free-microsoft-1868944-1583108.webp" alt="Microsoft">
+                    </div>
+                </div>
+                <div class="info-section">
+                    <h5 data-translate-key="about_contact_title">للتواصل والأعمال</h5>
+                    <p><strong>Email:</strong> zgzezoapps@gmail.com</p>
+                    <div class="social-card">
+                        <div class="profileimage">
+                            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgWOkKWcrjfXetBqFUfU6YnHpqUS5xeGP5mcGoGliJbtghkSmBavoXlNipoLf_LFGSjUU2mkZ3FeUotucktqKIVmKj7WekWjFk7NdU_z_ZAnZDyyvdIn2MMvq4D0rbimXcXz5X3ZkCoYcE6ggwt-gRHrX9Iptyb0O6jA3Y8Gwh6a8Ir0f_zlUxJwUaZL05E/s1280/snapedit_1741900259898.png" alt="ZIAD GAMAL">
+                        </div>
+                        <div class="Name"><p>ZIAD GAMAL</p></div>
+                        <div class="socialbar">
+                            <a id="facebook" href="https://www.facebook.com/ziad.ziad.75641" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                            <a id="instagram" href="https://www.instagram.com/zg_ziad_gamal/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                            <a id="whatsapp" href="https://api.whatsapp.com/send/?phone=201202377778" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i></a>
+                            <a id="telegram" href="https://t.me/ZG_ZIAD" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane"></i></a>
+                            <a id="youtube" href="https://www.youtube.com/channel/UCr9pR-04MZEr96VteNBlQ" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn" data-translate-key="close">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-translate-key="privacy_modal_title">سياسة الخصوصية</h2>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div id="privacy-modal-body" class="modal-body" data-translate-key="privacy_policy_content">
+                <!-- Injected by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn" data-translate-key="close">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-translate-key="settings_title">الإعدادات</h2>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4 data-translate-key="settings_primary_color_title">تخصيص المظهر</h4>
+                    <div class="setting-item">
+                        <label data-translate-key="settings_primary_color_label">اللون الأساسي للواجهة</label>
+                        <input type="color" id="primary-color-picker">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 data-translate-key="settings_background_title">ألوان الخلفية التفاعلية</h4>
+                    <div class="setting-item">
+                        <label data-translate-key="settings_light_start">لون البداية (فاتح)</label>
+                        <input type="color" id="light-start-color-picker">
+                    </div>
+                    <div class="setting-item">
+                        <label data-translate-key="settings_light_end">لون النهاية (فاتح)</label>
+                        <input type="color" id="light-end-color-picker">
+                    </div>
+                    <hr style="border: 1px solid var(--glass-border); margin: 15px 0;">
+                    <div class="setting-item">
+                        <label data-translate-key="settings_dark_start">لون البداية (داكن)</label>
+                        <input type="color" id="dark-start-color-picker">
+                    </div>
+                    <div class="setting-item">
+                        <label data-translate-key="settings_dark_end">لون النهاية (داكن)</label>
+                        <input type="color" id="dark-end-color-picker">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 data-translate-key="settings_animation_title">التحكم في الحركة</h4>
+                    <div class="setting-item">
+                        <label data-translate-key="settings_toggle_animation">تشغيل الخلفية المتحركة</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="animation-toggle-switch" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 data-translate-key="settings_reset_title">إعادة التعيين</h4>
+                    <div class="setting-item">
+                        <p data-translate-key="settings_reset_desc" style="flex-grow: 1; opacity: 0.8; font-size: 0.9em;">إعادة تعيين كافة الألوان والخيارات إلى حالتها الافتراضية.</p>
+                        <button id="reset-settings-btn" class="btn btn-danger" data-translate-key="settings_reset_button">إعادة التعيين</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Other Services Modal -->
+    <div id="services-modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-translate-key="services_modal_title">خدمات وتطبيقات ZG</h2>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="services-list">
+                    <a href="https://www.zg-ziad-gamal.com/p/zgpt.html" target="_blank" rel="noopener noreferrer" class="service-link">
+                        <i class="fas fa-brain"></i>
+                        <span>ZGPT</span>
+                    </a>
+                    <a href="https://www.zg-ziad-gamal.com/p/zg-doc.html" target="_blank" rel="noopener noreferrer" class="service-link">
+                        <i class="fas fa-file-word"></i>
+                        <span>ZG DOC</span>
+                    </a>
+                    <a href="https://www.zg-ziad-gamal.com/p/zg-slide.html" target="_blank" rel="noopener noreferrer" class="service-link">
+                        <i class="fas fa-file-powerpoint"></i>
+                        <span>ZG SLIDE</span>
+                    </a>
+                    <a href="https://www.zg-ziad-gamal.com/p/zg-code.html" target="_blank" rel="noopener noreferrer" class="service-link">
+                        <i class="fas fa-file-code"></i>
+                        <span>ZG CODE</span>
+                    </a>
+                    <a href="https://www.zg-ziad-gamal.com/p/zg-converter.html" target="_blank" rel="noopener noreferrer" class="service-link">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>ZG CONVERTER</span>
+                    </a>
+                    <a href="https://www.zg-ziad-gamal.com/p/zg-video.html" target="_blank" rel="noopener noreferrer" class="service-link">
+                        <i class="fas fa-film"></i>
+                        <span>ZG VIDEO</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="image-modal-overlay" class="modal-overlay">
+        <div class="image-modal-content">
+            <button id="image-modal-close-btn" class="modal-close-btn">&times;</button>
+            <img id="modal-image" src="" alt="معاينة الصورة بالحجم الكامل">
+        </div>
+    </div>
+
+    <!-- ==== JAVASCRIPT LOGIC ==== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const themeToggleButton = document.getElementById('theme-toggle-btn');
+            const htmlTag = document.documentElement;
+            const body = document.body;
+            const langButtons = {
+                ar: document.getElementById('lang-ar'),
+                en: document.getElementById('lang-en'),
+                zh: document.getElementById('lang-zh')
+            };
+
+            // Modals
+            const servicesToggleBtn = document.getElementById('services-toggle-btn');
+            const aboutToggleBtn = document.getElementById('about-toggle-btn');
+            const privacyToggleBtn = document.getElementById('privacy-toggle-btn');
+            const settingsToggleBtn = document.getElementById('settings-toggle-btn');
+
+            const servicesModal = document.getElementById('services-modal-overlay');
+            const aboutModal = document.getElementById('about-modal-overlay');
+            const privacyModal = document.getElementById('privacy-modal-overlay');
+            const settingsModal = document.getElementById('settings-modal-overlay');
+            const imageModal = document.getElementById('image-modal-overlay');
+            const modalImage = document.getElementById('modal-image');
+            const modalCloseBtns = document.querySelectorAll('.modal-close-btn');
+
+            // Settings Elements
+            const primaryColorPicker = document.getElementById('primary-color-picker');
+            const lightStartColorPicker = document.getElementById('light-start-color-picker');
+            const lightEndColorPicker = document.getElementById('light-end-color-picker');
+            const darkStartColorPicker = document.getElementById('dark-start-color-picker');
+            const darkEndColorPicker = document.getElementById('dark-end-color-picker');
+            const animationToggle = document.getElementById('animation-toggle-switch');
+            const resetSettingsBtn = document.getElementById('reset-settings-btn');
+
+            // Download Buttons
+            const downloadWin = document.getElementById('download-win');
+            const downloadLinux = document.getElementById('download-linux');
+
+            // Translations Dictionary
+            const translations = {
+                ar: {
+                    pageTitle: "ZG Photo - محرر الصور الاحترافي",
+                    appBadge: "PRO STUDIO",
+                    shortDescription: "برنامج متكامل وفائق السرعة لتحرير الصور والتصميم الرقمي الاحترافي. مبني من الصفر بمحرك رسومي مباشر يدعم الطبقات، الأقنعة، أنماط الطبقات، وتوافقاً تاماً مع ملفات PSD و PSB بدون اشتراكات أو قيود سحابية.",
+                    downloadWindows: "تحميل للويندوز (MSI x64)",
+                    downloadLinux: "تحميل للينكس (AppImage)",
+                    watchAd: "مشاهدة الإعلان",
+                    adTitle: "الإعلان الرسمي والعرض الترويجي لـ ZG Photo",
+                    adBannerDesc: "اضغط على زر مشاهدة الإعلان أدناه لاستعراض الصفحة الترويجية الرسمية الشاملة لبرنامج ZG Photo وكافة تفاصيل ومميزات الإصدار.",
+                    screenshotsTitle: "لقطات الشاشة الفعلية للمشروع",
+                    postersTitle: "الملصقات والعروض الترويجية الرسمية",
+                    descriptionTitle: "تفاصيل ومميزات ZG Photo",
+                    cap1: "واجهة العمل الكاملة مع طبقات المنحنيات والكتابة",
+                    cap2: "مستويات الألوان ومخطط الهستوجرام الحي",
+                    cap3: "أنماط الطبقات، الظلال، والتوهج الخارجي",
+                    cap4: "التحديدات الدقيقة وأقنعة الطبقات غير المدمرة",
+                    cap5: "أدوات الأشكال المتجهة والمسارات الاحترافية",
+                    cap6: "التحويل الحر والتحكم الكامل في الأبعاد",
+                    ad1: "الملصق الرسمي 01",
+                    ad2: "الملصق الرسمي 02",
+                    ad3: "الملصق الرسمي 03",
+                    ad4: "الملصق الرسمي 04",
+                    ad5: "الملصق الرسمي 05",
+                    longDescription: `
+                        <p><strong>ZG Photo</strong> هو محطة عمل فائقة التطور لتحرير الصور والتصميم الجرافيكي المتقدم، صُممت خصيصاً للمحترفين والمصممين الذين يبحثون عن أقصى درجات السرعة والحرية دون الحاجة إلى اشتراكات شهرية أو اتصال إلزامي بالإنترنت.</p>
+                        
+                        <div class="feature-grid">
+                            <div class="feature-box">
+                                <h4><i class="fas fa-bolt"></i> محرك GPU أصيل</h4>
+                                <p>يعمل بتسريع عتادي مباشر عبر كرت الشاشة (Metal، Vulkan، DirectX 12) دون أطر إلكترون أو واجهات ويب بطيئة.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-layer-group"></i> توافق تام مع PSD</h4>
+                                <p>فتح وحفظ وتعديل مستندات الفوتوشوب متعددة الطبقات مع الحفاظ الكامل على الأقنعة وخصائص الطبقة وتنسيقات النص.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-sliders-h"></i> طبقات ضبط غير مدمرة</h4>
+                                <p>تحكم حي عبر المنحنيات Curves، المستويات Levels، درجات التشبع Vibrance والسطوع بدون الإضرار بالصورة الأصلية.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-robot"></i> جاهزية أتمتة الذكاء الاصطناعي</h4>
+                                <p>كل عملية في البرنامج مدعومة بنظام أوامر مهيكل يمكن التحكم به عبر السطر البرمجي CLI أو خوادم وكلاء الذكاء الاصطناعي MCP.</p>
+                            </div>
+                        </div>
+
+                        <h3>🔹 بيئة مألوفة واحترافية:</h3>
+                        <ul>
+                            <li><strong>واجهة أدوات بديهية:</strong> القوائم، اللوحات، أدوات التحديد، والاختصارات تقع في نفس الأماكن التي اعتادت عليها أصابعك.</li>
+                            <li><strong>27 نمط دمج (Blending Modes):</strong> محسوبة بدقة رياضية متناهية تدعم عمق ألوان 8-bit و 16-bit و 32-bit floating point.</li>
+                            <li><strong>أنماط الطبقات (Layer Styles):</strong> تطبيق الظلال الساقطة Drop Shadow، التوهج الداخلي والخارجي Glow، الحدود Stroke، والتدرجات الحية.</li>
+                            <li><strong>نظام الفرش المتقدم:</strong> دعم كامل لضغط القلم، والميل، والتشتت، مع فرش خلط الألوان الحية.</li>
+                        </ul>
+
+                        <h3>🔹 دعم صيغ التصدير الشاملة:</h3>
+                        <p>تصدير واستيراد متكامل لصيغ: PSD، PSB، PNG، JPEG، TIFF، WebP، GIF، BMP، TGA، ICO، OpenEXR، Radiance HDR و AVIF مع الحفاظ على قنوات الشفافية والعمق اللوني الكامل.</p>
+                    `,
+                    poweredBy: "يعمل بواسطة ZG SERVER",
+                    about_modal_title: "حول المطور",
+                    about_name: "زياد جمال شوقي محمد محمد يوسف",
+                    about_dob: "تاريخ الميلاد: 23/1/2003",
+                    about_skills_title: "القدرات",
+                    about_skill_1: "إنشاء وتطوير مواقع الويب وتطبيقات الأنظمة المتكاملة.",
+                    about_skill_2: "إنتاج فيديوهات موشن جرافيك مع تعليق صوتي احترافي بلهجات متعددة.",
+                    about_skill_3: "تصميم وتطوير برمجيات الأندرويد والكمبيوتر وأنظمة الذكاء الاصطناعي.",
+                    about_experience_title: "أبرز الأعمال والخبرات",
+                    about_exp_1: "العمل مع شركة الدار العربي السعودية (19/5/2019).",
+                    about_exp_2: "المشاركة في مشروع القرآن العظيم وتطوير برامج للأندرويد والآيفون.",
+                    about_exp_3: "تصميم هويات بصرية وصور لـ GAMES 2EGYPT.",
+                    about_exp_5: "المشاركة في مشاريع وتطبيقات شركة Huawei.",
+                    about_projects_title: "مشاريعي",
+                    about_certs_title: "الشهادات المعتمدة",
+                    about_contact_title: "للتواصل والأعمال",
+                    close: "إغلاق",
+                    services_modal_title: "خدمات وتطبيقات ZG",
+                    settings_title: "الإعدادات",
+                    settings_primary_color_title: "تخصيص المظهر",
+                    settings_primary_color_label: "اللون الأساسي للواجهة",
+                    settings_background_title: "ألوان الخلفية التفاعلية",
+                    settings_light_start: "لون البداية (فاتح)",
+                    settings_light_end: "لون النهاية (فاتح)",
+                    settings_dark_start: "لون البداية (داكن)",
+                    settings_dark_end: "لون النهاية (داكن)",
+                    settings_animation_title: "التحكم في الحركة",
+                    settings_toggle_animation: "تشغيل الخلفية المتحركة",
+                    settings_reset_title: "إعادة التعيين",
+                    settings_reset_desc: "إعادة تعيين كافة الألوان والخيارات إلى حالتها الافتراضية.",
+                    settings_reset_button: "إعادة التعيين",
+                    privacy_modal_title: "سياسة الخصوصية",
+                    privacy_policy_content: `
+                        <p>نولي في ZG أولوية قصوى لخصوصية زوارنا ومستخدمينا.</p>
+                        <h3>1. البيانات والخصوصية</h3>
+                        <p>برنامج ZG Photo يعمل محلياً بالكامل (Offline) دون أي رفع لصورك أو مشاريعك على أي خوادم خارجية. تصميماتك ملكك بالكامل ومحفوظة على جهازك الشخصي.</p>
+                        <h3>2. التخزين المحلي</h3>
+                        <p>يستخدم موقعنا التخزين المحلي (Local Storage) لحفظ إعدادات المظهر واللغة والألوان المختارة فقط.</p>
+                        <h3>3. الأمان والموثوقية</h3>
+                        <p>لا نقوم بجمع أو تتبع أي بيانات شخصية أو بريد إلكتروني، مما يضمن أماناً رقمياً مطلقاً أثناء الاستخدام.</p>
+                    `
+                },
+                en: {
+                    pageTitle: "ZG Photo - Professional Image Editor",
+                    appBadge: "PRO STUDIO",
+                    shortDescription: "A comprehensive, high-performance image editing and digital design software. Built from the ground up with native GPU acceleration, full support for layers, masks, layer styles, and seamless PSD/PSB file compatibility.",
+                    downloadWindows: "Download for Windows (MSI x64)",
+                    downloadLinux: "Download for Linux (AppImage)",
+                    watchAd: "Watch Ad",
+                    adTitle: "Official Promo & Ad Showcase",
+                    adBannerDesc: "Click the Watch Ad button below to explore the official promotional portal for ZG Photo and discover all new features.",
+                    screenshotsTitle: "Actual Application Screenshots",
+                    postersTitle: "Official Posters & Visual Artwork",
+                    descriptionTitle: "ZG Photo Features & Architecture",
+                    cap1: "Full workspace with Curves and Type layers",
+                    cap2: "Levels adjustment with live Histogram panel",
+                    cap3: "Layer Styles dialog with Drop Shadow & Glow",
+                    cap4: "Precise Selections and Non-destructive Masks",
+                    cap5: "Vector Paths and Shape creation tools",
+                    cap6: "Free Transform and dimension controls",
+                    ad1: "Official Poster 01",
+                    ad2: "Official Poster 02",
+                    ad3: "Official Poster 03",
+                    ad4: "Official Poster 04",
+                    ad5: "Official Poster 05",
+                    longDescription: `
+                        <p><strong>ZG Photo</strong> is a high-end desktop workstation for image editing and digital art, engineered from scratch for professionals demanding instantaneous response times, zero subscriptions, and 100% offline security.</p>
+                        
+                        <div class="feature-grid">
+                            <div class="feature-box">
+                                <h4><i class="fas fa-bolt"></i> Native GPU Engine</h4>
+                                <p>Hardware-accelerated compositor powered by Metal, Vulkan, and DirectX 12. No Electron, no web latency.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-layer-group"></i> Real PSD Compatibility</h4>
+                                <p>Open, edit, and save multi-layer Photoshop documents with round-trip layer stability and masks preserved.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-sliders-h"></i> Non-Destructive Edits</h4>
+                                <p>Live adjustment layers including Curves, Levels, Vibrance, and Hue/Saturation without harming base pixels.</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-robot"></i> AI Automation Ready</h4>
+                                <p>Every single operation can be driven headlessly via CLI scripting or Model Context Protocol (MCP) agent servers.</p>
+                            </div>
+                        </div>
+
+                        <h3>🔹 Familiar and Productive by Design:</h3>
+                        <ul>
+                            <li><strong>Intuitive Workspace:</strong> Menus, tools, floating panels, and shortcuts operate precisely where your hands expect them.</li>
+                            <li><strong>27 Mathematical Blend Modes:</strong> Pixel-perfect formulas supporting 8-bit, 16-bit, and 32-bit floating point precision.</li>
+                            <li><strong>Full Layer Styles:</strong> Real-time Outer Glow, Stroke, Drop Shadow, Bevel & Emboss, and Overlays.</li>
+                            <li><strong>Responsive Brush System:</strong> Pressure sensitivity, tilt dynamics, jitter, scatter, and digital mixer brushes.</li>
+                        </ul>
+
+                        <h3>🔹 Comprehensive Format Pipeline:</h3>
+                        <p>Native read and write support for PSD, PSB, PNG, JPEG, TIFF, WebP, GIF, BMP, TGA, ICO, OpenEXR, Radiance HDR, and AVIF preserving high dynamic range and alpha channels.</p>
+                    `,
+                    poweredBy: "Powered by ZG SERVER",
+                    about_modal_title: "About the Developer",
+                    about_name: "Ziad Gamal Shawky Muhammad Muhammad Yusuf",
+                    about_dob: "Date of Birth: 23/1/2003",
+                    about_skills_title: "Abilities",
+                    about_skill_1: "Full-stack web and native desktop software development.",
+                    about_skill_2: "Producing professional motion graphics videos with multi-dialect voice-overs.",
+                    about_skill_3: "Designing Android, Windows, and AI-powered systems.",
+                    about_experience_title: "Key Works & Experience",
+                    about_exp_1: "Worked with Al Dar Al Arabi Saudi Company (19/5/2019).",
+                    about_exp_2: "Participated in the Great Quran project, developing apps for Android and iOS.",
+                    about_exp_3: "Designed visual media and graphics for GAMES 2EGYPT.",
+                    about_exp_5: "Contributor to projects at Huawei.",
+                    about_projects_title: "My Projects",
+                    about_certs_title: "Certifications",
+                    about_contact_title: "Business & Contact",
+                    close: "Close",
+                    services_modal_title: "ZG Services & Apps",
+                    settings_title: "Settings",
+                    settings_primary_color_title: "Appearance",
+                    settings_primary_color_label: "Primary Theme Color",
+                    settings_background_title: "Interactive Background Colors",
+                    settings_light_start: "Start Color (Light)",
+                    settings_light_end: "End Color (Light)",
+                    settings_dark_start: "Start Color (Dark)",
+                    settings_dark_end: "End Color (Dark)",
+                    settings_animation_title: "Animation Control",
+                    settings_toggle_animation: "Enable Animated Background",
+                    settings_reset_title: "Reset",
+                    settings_reset_desc: "Reset all colors and UI settings to defaults.",
+                    settings_reset_button: "Reset All",
+                    privacy_modal_title: "Privacy Policy",
+                    privacy_policy_content: `
+                        <p>At ZG, user privacy and offline autonomy are paramount.</p>
+                        <h3>1. Zero Tracking & Offline Workflows</h3>
+                        <p>ZG Photo functions entirely offline. Your images, artwork, and project files never leave your device.</p>
+                        <h3>2. Local Storage</h3>
+                        <p>We use browser local storage purely to remember your theme, language, and color preferences.</p>
+                        <h3>3. Complete Data Security</h3>
+                        <p>No telemetry, no analytics, and no cloud uploads ensure total confidential creative work.</p>
+                    `
+                },
+                zh: {
+                    pageTitle: "ZG Photo - 专业图像编辑器",
+                    appBadge: "PRO STUDIO",
+                    shortDescription: "一款从零构建的高性能全功能图像编辑与数字设计软件。采用原生GPU硬件加速，完整支持图层、蒙版、图层样式以及原生PSD/PSB文件完美兼容，无需订阅。",
+                    downloadWindows: "下载 Windows 版 (MSI x64)",
+                    downloadLinux: "下载 Linux 版 (AppImage)",
+                    watchAd: "观看广告",
+                    adTitle: "ZG Photo 官方宣传与广告展示",
+                    adBannerDesc: "点击下方观看广告按钮，前往 ZG Photo 官方宣传页面了解更多功能与最新动态。",
+                    screenshotsTitle: "实际应用运行屏幕截图",
+                    postersTitle: "官方海报与宣传视觉图",
+                    descriptionTitle: "ZG Photo 核心功能与架构",
+                    cap1: "完整的图层、文字与曲线调整工作区",
+                    cap2: "实时色阶调整与动态直方图面板",
+                    cap3: "图层样式对话框、阴影与外部发光效果",
+                    cap4: "精准选区与非破坏性图层蒙版",
+                    cap5: "矢量形状与精准路径设计工具",
+                    cap6: "自由变换与全维度尺寸控制",
+                    ad1: "官方海报 01",
+                    ad2: "官方海报 02",
+                    ad3: "官方海报 03",
+                    ad4: "官方海报 04",
+                    ad5: "官方海报 05",
+                    longDescription: `
+                        <p><strong>ZG Photo</strong> 是一款专为设计师和创意专家打造的专业桌面图像处理工作站，注重极致响应速度、免订阅体验和100%离线隐私保护。</p>
+                        
+                        <div class="feature-grid">
+                            <div class="feature-box">
+                                <h4><i class="fas fa-bolt"></i> 原生GPU渲染引擎</h4>
+                                <p>基于 Metal、Vulkan 和 DirectX 12 硬件加速构建，杜绝 Electron 框架的卡顿与内存臃肿。</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-layer-group"></i> 原生 PSD 完美兼容</h4>
+                                <p>轻松打开、编辑和保存分层 Photoshop 文档，完美保留图层蒙版、样式和文本属性。</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-sliders-h"></i> 非破坏性调整图层</h4>
+                                <p>包含曲线 Curves、色阶 Levels、自然饱和度 Vibrance 等实时无损色彩调整工具。</p>
+                            </div>
+                            <div class="feature-box">
+                                <h4><i class="fas fa-robot"></i> 人工智能自动化支持</h4>
+                                <p>所有功能均支持结构化命令调度，可通过 CLI 命令行或 MCP 服务器实现智能体自动化处理。</p>
+                            </div>
+                        </div>
+
+                        <h3>🔹 符合直觉的专业操作界面：</h3>
+                        <ul>
+                            <li><strong>经典工作流布局：</strong> 菜单、工具栏、浮动面板和快捷键完全符合专业设计师的操作习惯。</li>
+                            <li><strong>27 种数学混合模式：</strong> 精确支持 8 位、16 位以及 32 位浮点色彩深度。</li>
+                            <li><strong>全功能图层样式：</strong> 实时外发光、描边、投影、浮雕及渐变叠加。</li>
+                            <li><strong>灵敏的画笔系统：</strong> 支持压感、倾斜、散布与实时混色画笔。</li>
+                        </ul>
+
+                        <h3>🔹 全面图像格式管线：</h3>
+                        <p>全面支持 PSD、PSB、PNG、JPEG、TIFF、WebP、GIF、BMP、TGA、ICO、OpenEXR、Radiance HDR 和 AVIF 等主流格式的读写与通道导出。</p>
+                    `,
+                    poweredBy: "由 ZG SERVER 提供支持",
+                    about_modal_title: "关于开发者",
+                    about_name: "齐亚德·贾马尔·肖基·穆罕默德·优素福",
+                    about_dob: "出生日期：2003年1月23日",
+                    about_skills_title: "专业能力",
+                    about_skill_1: "全栈 Web 与原生桌面应用程序开发。",
+                    about_skill_2: "制作专业动态图形视频并提供多方言配音。",
+                    about_skill_3: "开发安卓、Windows 及人工智能系统。",
+                    about_experience_title: "主要工作经历",
+                    about_exp_1: "与沙特阿拉伯 Al Dar Al Arabi 公司合作 (2019/5/19)。",
+                    about_exp_2: "参与古兰经数字化项目，开发安卓和苹果端应用。",
+                    about_exp_3: "为 GAMES 2EGYPT 制作专业视觉图与品牌设计。",
+                    about_exp_5: "华为生态项目参与者与贡献者。",
+                    about_projects_title: "我的项目",
+                    about_certs_title: "认证证书",
+                    about_contact_title: "商务洽谈与联系",
+                    close: "关闭",
+                    services_modal_title: "ZG 旗下服务与应用",
+                    settings_title: "设置",
+                    settings_primary_color_title: "外观设置",
+                    settings_primary_color_label: "主题主色调",
+                    settings_background_title: "动态交互背景颜色",
+                    settings_light_start: "起始颜色 (浅色)",
+                    settings_light_end: "结束颜色 (浅色)",
+                    settings_dark_start: "起始颜色 (深色)",
+                    settings_dark_end: "结束颜色 (深色)",
+                    settings_animation_title: "动效控制",
+                    settings_toggle_animation: "开启背景流动动画",
+                    settings_reset_title: "重置设置",
+                    settings_reset_desc: "将所有外观和配置恢复为默认值。",
+                    settings_reset_button: "全部重置",
+                    privacy_modal_title: "隐私政策",
+                    privacy_policy_content: `
+                        <p>在 ZG，我们严格保障用户的隐私安全。</p>
+                        <h3>1. 零追踪与全离线工作</h3>
+                        <p>ZG Photo 完全在本地运行，您的作品和工程文件绝不上传到任何外部服务器。</p>
+                        <h3>2. 本地存储</h3>
+                        <p>本网站仅使用浏览器的 Local Storage 记录您的语言、主题及个性化调色配置。</p>
+                        <h3>3. 数据安全</h3>
+                        <p>不收集任何个人敏感信息，确保纯净、安全的专业创作环境。</p>
+                    `
+                }
+            };
+
+            // Download Button Progress Animation
+            const setupDownloadButton = (button) => {
+                if (!button) return;
+                button.addEventListener('click', (e) => {
+                    if (button.classList.contains('downloading')) {
+                        return;
+                    }
+                    button.classList.add('downloading');
+                    setTimeout(() => {
+                        button.classList.remove('downloading');
+                    }, 2200);
+                });
+            };
+            setupDownloadButton(downloadWin);
+            setupDownloadButton(downloadLinux);
+
+            // Modals Logic
+            const openModal = (modal) => { modal.style.display = 'flex'; };
+            const closeModal = (modal) => { modal.style.display = 'none'; };
+
+            servicesToggleBtn.addEventListener('click', () => openModal(servicesModal));
+            aboutToggleBtn.addEventListener('click', () => openModal(aboutModal));
+            privacyToggleBtn.addEventListener('click', () => openModal(privacyModal));
+            settingsToggleBtn.addEventListener('click', () => openModal(settingsModal));
+
+            modalCloseBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    closeModal(e.target.closest('.modal-overlay'));
+                });
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) {
+                    closeModal(e.target);
+                }
+            });
+
+            // Universal Lightbox (Screenshots & Posters)
+            document.querySelectorAll('.lightbox-trigger').forEach(item => {
+                item.addEventListener('click', () => {
+                    const img = item.querySelector('img');
+                    if (img) {
+                        modalImage.src = img.src;
+                        openModal(imageModal);
+                    }
+                });
+            });
+
+            // Theme Toggle Logic
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    body.classList.add('dark-mode');
+                } else {
+                    body.classList.remove('dark-mode');
+                }
+                localStorage.setItem('theme', theme);
+                applyCustomColors();
+            };
+
+            themeToggleButton.addEventListener('click', () => {
+                const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+
+            // Language Switcher Logic
+            function changeLanguage(lang) {
+                if (!translations[lang]) return;
+
+                htmlTag.lang = lang;
+                htmlTag.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+
+                document.querySelectorAll('[data-translate-key]').forEach(el => {
+                    const key = el.getAttribute('data-translate-key');
+                    if (translations[lang][key]) {
+                        if (key === 'longDescription' || key === 'privacy_policy_content') {
+                            el.innerHTML = translations[lang][key];
+                        } else {
+                            el.innerText = translations[lang][key];
+                        }
+                    }
+                });
+
+                document.title = translations[lang].pageTitle || "ZG Photo";
+
+                Object.values(langButtons).forEach(btn => btn.classList.remove('active'));
+                if (langButtons[lang]) langButtons[lang].classList.add('active');
+                localStorage.setItem('language', lang);
+            }
+
+            Object.keys(langButtons).forEach(lang => {
+                langButtons[lang].addEventListener('click', () => changeLanguage(lang));
+            });
+
+            // Dynamic Palette Customization
+            const defaultColors = {
+                primary: '#00AFFF',
+                light: { start: '#89f7fe', end: '#66a6ff' },
+                dark: { start: '#1e2022', end: '#393e46' }
+            };
+
+            function applyCustomColors() {
+                const currentTheme = body.classList.contains('dark-mode') ? 'dark' : 'light';
+                const startColor = localStorage.getItem(`bg-${currentTheme}-start`) || defaultColors[currentTheme].start;
+                const endColor = localStorage.getItem(`bg-${currentTheme}-end`) || defaultColors[currentTheme].end;
+                document.documentElement.style.setProperty('--bg-gradient-start', startColor);
+                document.documentElement.style.setProperty('--bg-gradient-end', endColor);
+            }
+
+            function applyPrimaryColor() {
+                const primaryColor = localStorage.getItem('primary-color') || defaultColors.primary;
+                document.documentElement.style.setProperty('--primary-color', primaryColor);
+            }
+
+            function toggleAnimation(enabled) {
+                localStorage.setItem('animationEnabled', enabled);
+                if (enabled) {
+                    body.classList.remove('animation-disabled');
+                } else {
+                    body.classList.add('animation-disabled');
+                }
+            }
+
+            function loadSettings() {
+                const savedLang = localStorage.getItem('language') || 'ar';
+                changeLanguage(savedLang);
+
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                applyTheme(savedTheme);
+
+                const savedPrimaryColor = localStorage.getItem('primary-color') || defaultColors.primary;
+                primaryColorPicker.value = savedPrimaryColor;
+                applyPrimaryColor();
+
+                lightStartColorPicker.value = localStorage.getItem('bg-light-start') || defaultColors.light.start;
+                lightEndColorPicker.value = localStorage.getItem('bg-light-end') || defaultColors.light.end;
+                darkStartColorPicker.value = localStorage.getItem('bg-dark-start') || defaultColors.dark.start;
+                darkEndColorPicker.value = localStorage.getItem('bg-dark-end') || defaultColors.dark.end;
+                applyCustomColors();
+
+                const animationEnabled = (localStorage.getItem('animationEnabled') !== 'false');
+                animationToggle.checked = animationEnabled;
+                toggleAnimation(animationEnabled);
+            }
+
+            primaryColorPicker.addEventListener('input', (e) => {
+                localStorage.setItem('primary-color', e.target.value);
+                applyPrimaryColor();
+            });
+
+            lightStartColorPicker.addEventListener('input', (e) => {
+                localStorage.setItem('bg-light-start', e.target.value);
+                applyCustomColors();
+            });
+            lightEndColorPicker.addEventListener('input', (e) => {
+                localStorage.setItem('bg-light-end', e.target.value);
+                applyCustomColors();
+            });
+            darkStartColorPicker.addEventListener('input', (e) => {
+                localStorage.setItem('bg-dark-start', e.target.value);
+                applyCustomColors();
+            });
+            darkEndColorPicker.addEventListener('input', (e) => {
+                localStorage.setItem('bg-dark-end', e.target.value);
+                applyCustomColors();
+            });
+            animationToggle.addEventListener('change', (e) => toggleAnimation(e.target.checked));
+
+            resetSettingsBtn.addEventListener('click', () => {
+                const currentLang = localStorage.getItem('language') || 'ar';
+                const confirmMsg = currentLang === 'ar' ? 'هل أنت متأكد من إعادة تعيين جميع الإعدادات؟' : currentLang === 'zh' ? '您确定要重置所有设置吗？' : 'Are you sure you want to reset all settings?';
+                if (confirm(confirmMsg)) {
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            });
+
+            // Initialize Page
+            loadSettings();
+        });
+    </script>
+</body>
+</html>
